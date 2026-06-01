@@ -282,6 +282,26 @@ tr.total-row td{background:rgba(212,168,67,0.10);font-weight:600;color:var(--cor
 /* ══════════════════════════════════════════
    LOG MODULE STYLES
 ══════════════════════════════════════════ */
+
+/* ── Calculators ── */
+.calc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden}
+.calc-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer;transition:background 0.15s}
+.calc-header:hover{background:var(--surface2)}
+.calc-title{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:0.07em;color:var(--coral)}
+.calc-arrow{color:var(--text-muted);font-size:11px;transition:transform 0.2s}
+.calc-arrow.open{transform:rotate(90deg)}
+.calc-body{display:none;padding:0 18px 18px;border-top:1px solid var(--border)}
+.calc-body.open{display:block}
+.calc-desc{font-size:13px;color:var(--text-dim);line-height:1.6;margin:14px 0 16px}
+.calc-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px}
+.calc-row .form-field{flex:1;min-width:120px}
+.calc-result-box{flex:1;min-width:100px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;text-align:center}
+.calc-result-label{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:4px}
+.calc-result-val{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--coral)}
+.calc-formula{font-family:var(--mono);font-size:11px;color:var(--text-muted);line-height:1.5;padding:8px 12px;background:rgba(0,0,0,0.15);border-radius:6px}
+.calc-send-btn{display:block;width:100%;margin-top:8px;padding:6px 10px;border:1px solid var(--coral);border-radius:6px;background:transparent;color:var(--coral);font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;transition:all 0.15s}
+.calc-send-btn:hover{background:var(--coral);color:var(--bg)}
+
 .log-section{display:none}
 .log-section.active{display:block;animation:fadeIn 0.2s ease}
 .sum-section{display:none}
@@ -515,6 +535,7 @@ canvas.param-chart{width:100%!important;height:180px!important}
   <div class="sidebar-section">
     <div class="sidebar-label">Water Tests</div>
     <div class="nav-item active" id="lognav-entry" onclick="showLog('entry',this)"><span class="nav-icon">✏️</span> Add Reading</div>
+    <div class="nav-item" id="lognav-calc" onclick="showLog('calc',this)"><span class="nav-icon">🔢</span> Calculators</div>
     <div class="nav-item" id="lognav-tests" onclick="showLog('tests',this)"><span class="nav-icon">🧪</span> Test History</div>
     <div class="nav-item" id="lognav-ranges" onclick="showLog('ranges',this)"><span class="nav-icon">🎯</span> Test Ranges</div>
   </div>
@@ -575,7 +596,7 @@ canvas.param-chart{width:100%!important;height:180px!important}
 <!-- ─────────────────────────
      DOSING SECTIONS
 ───────────────────────────── -->
-<div id="module-dosing">
+<div id="module-dosing" style="display:none">
 
 <div class="inline-nav" id="dos-inline-nav">
   <button class="inline-nav-btn active" id="dosnav-recipes" onclick="showSection('recipes',this)"><span class="in-icon">🧴</span>Recipes</button>
@@ -1063,10 +1084,120 @@ canvas.param-chart{width:100%!important;height:180px!important}
 
 <div class="inline-nav" id="log-inline-nav">
   <button class="inline-nav-btn active" id="loginav-entry" onclick="showLog('entry',this)"><span class="in-icon">✏️</span>Add Reading</button>
+  <button class="inline-nav-btn" id="loginav-calc" onclick="showLog('calc',this)"><span class="in-icon">🔢</span>Calculators</button>
   <button class="inline-nav-btn" id="loginav-tests" onclick="showLog('tests',this)"><span class="in-icon">🧪</span>Test History</button>
   <button class="inline-nav-btn" id="loginav-ranges" onclick="showLog('ranges',this)"><span class="in-icon">🎯</span>Ranges</button>
   <button class="inline-nav-btn" id="loginav-maint" onclick="showLog('maint',this)"><span class="in-icon">🔧</span>Tasks</button>
   <button class="inline-nav-btn" id="loginav-wc" onclick="showLog('wc',this)"><span class="in-icon">🔄</span>Water Change</button>
+</div>
+
+<!-- CALCULATORS -->
+<div class="log-section" id="log-calc">
+  <div class="section-header">
+    <h2><span class="emoji">🔢</span> Calculators</h2>
+    <p>Tap a calculator to expand it</p>
+  </div>
+
+  <!-- KH: ppm → dKH -->
+  <div class="calc-card" id="calc-kh">
+    <div class="calc-header" onclick="toggleCalc('kh')">
+      <div class="calc-title">KH — ppm to dKH</div>
+      <div class="calc-arrow" id="calc-arrow-kh">▶</div>
+    </div>
+    <div class="calc-body" id="calc-body-kh">
+      <div class="calc-desc">Converts KH from ppm (mg/L as CaCO₃) to degrees of hardness (dKH)</div>
+      <div class="calc-row">
+        <div class="form-field">
+          <label>KH (ppm)</label>
+          <input type="number" id="kh-ppm" placeholder="e.g. 35.8" step="0.1" min="0" oninput="calcKH()">
+        </div>
+        <div class="calc-result-box">
+          <div class="calc-result-label">dKH</div>
+          <div class="calc-result-val" id="kh-result">—</div>
+          <button class="calc-send-btn" onclick="sendToForm('kh-result','f-KH')">→ Add Reading</button>
+        </div>
+      </div>
+      <div class="calc-formula">Formula: ppm ÷ 17.848 = dKH</div>
+    </div>
+  </div>
+
+  <!-- Ca from Mg + GH -->
+  <div class="calc-card" id="calc-ca">
+    <div class="calc-header" onclick="toggleCalc('ca')">
+      <div class="calc-title">Ca — from Mg + GH</div>
+      <div class="calc-arrow" id="calc-arrow-ca">▶</div>
+    </div>
+    <div class="calc-body" id="calc-body-ca">
+      <div class="calc-desc">Calculates Ca ppm given measured Mg ppm and GH in dGH. Provide the Excel formula and I'll wire it up exactly.</div>
+      <div class="calc-row">
+        <div class="form-field">
+          <label>Mg (ppm)</label>
+          <input type="number" id="ca-mg" placeholder="e.g. 8" step="0.1" min="0" oninput="calcCa()">
+        </div>
+        <div class="form-field">
+          <label>GH (dGH)</label>
+          <input type="number" id="ca-gh" placeholder="e.g. 5.5" step="0.1" min="0" oninput="calcCa()">
+        </div>
+        <div class="calc-result-box">
+          <div class="calc-result-label">Ca (ppm)</div>
+          <div class="calc-result-val" id="ca-result">—</div>
+          <button class="calc-send-btn" onclick="sendToForm('ca-result','f-Ca')">→ Add Reading</button>
+        </div>
+      </div>
+      <div class="calc-formula">Formula: (GH × 17.848 − 4.118 × Mg) ÷ 2.497</div>
+    </div>
+  </div>
+
+  <!-- Hanna NO3 correction -->
+  <div class="calc-card" id="calc-hanna">
+    <div class="calc-header" onclick="toggleCalc('hanna')">
+      <div class="calc-title">Hanna NO₃ — Freshwater Correction</div>
+      <div class="calc-arrow" id="calc-arrow-hanna">▶</div>
+    </div>
+    <div class="calc-body" id="calc-body-hanna">
+      <div class="calc-desc">Corrects the Hanna checker reading for freshwater. Applies a low-range or high-range correction depending on the reading, blended around 15–25 ppm.</div>
+      <div class="calc-row">
+        <div class="form-field">
+          <label>Hanna raw reading</label>
+          <input type="number" id="hanna-raw" placeholder="e.g. 3.2" step="0.1" min="0" oninput="calcHanna()">
+        </div>
+        <div class="calc-result-box">
+          <div class="calc-result-label">NO₃ (ppm)</div>
+          <div class="calc-result-val" id="hanna-result">—</div>
+          <button class="calc-send-btn" onclick="sendToForm('hanna-result','f-NO3')">→ Add Reading</button>
+        </div>
+      </div>
+      <div class="calc-formula">Low range (&lt;15): 0.78x − 1.3 &nbsp;·&nbsp; High range (&gt;25): 0.93x − 3.2 &nbsp;·&nbsp; Blended between 15–25</div>
+    </div>
+  </div>
+
+  <!-- CO2 titration -->
+  <div class="calc-card" id="calc-co2">
+    <div class="calc-header" onclick="toggleCalc('co2')">
+      <div class="calc-title">CO₂ — Titration Calculator</div>
+      <div class="calc-arrow" id="calc-arrow-co2">▶</div>
+    </div>
+    <div class="calc-body" id="calc-body-co2">
+      <div class="calc-desc">Calculates CO₂ ppm from a titration test. Sample size defaults to 10ml — edit if you use a different volume.</div>
+      <div class="calc-row">
+        <div class="form-field">
+          <label>Sample size (ml)</label>
+          <input type="number" id="co2-sample" placeholder="10" value="10" step="1" min="0" oninput="calcCO2()">
+        </div>
+        <div class="form-field">
+          <label>Titrant used (ml)</label>
+          <input type="number" id="co2-titrant" placeholder="e.g. 2.4" step="0.1" min="0" oninput="calcCO2()">
+        </div>
+        <div class="calc-result-box">
+          <div class="calc-result-label">CO₂ (ppm)</div>
+          <div class="calc-result-val" id="co2-result">—</div>
+          <button class="calc-send-btn" onclick="sendToForm('co2-result','f-CO2')">→ Add Reading</button>
+        </div>
+      </div>
+      <div class="calc-formula">Formula: titrant × 0.01 × 44 × 1000 ÷ sample size &nbsp;·&nbsp; Sample defaults to 10ml</div>
+    </div>
+  </div>
+
 </div>
 
 <!-- TEST HISTORY -->
@@ -1086,6 +1217,9 @@ canvas.param-chart{width:100%!important;height:180px!important}
     <button class="param-pill" onclick="setParam('GH',this)">GH</button>
     <button class="param-pill" onclick="setParam('CO2',this)">CO₂</button>
     <button class="param-pill" onclick="setParam('Fe',this)">Fe</button>
+    <button class="param-pill" onclick="setParam('TDS',this)">TDS</button>
+    <button class="param-pill" onclick="setParam('Mg',this)">Mg</button>
+    <button class="param-pill" onclick="setParam('Ca',this)">Ca</button>
   </div>
   <div class="chart-wrap">
     <div class="range-bar">
@@ -1151,6 +1285,18 @@ canvas.param-chart{width:100%!important;height:180px!important}
       <div class="form-field">
         <label>Temp (°C)</label>
         <input type="number" id="f-Temp" placeholder="e.g. 25" step="0.5" min="0">
+      </div>
+      <div class="form-field">
+        <label>TDS (ppm)</label>
+        <input type="number" id="f-TDS" placeholder="e.g. 180" step="1" min="0">
+      </div>
+      <div class="form-field">
+        <label>Mg (ppm)</label>
+        <input type="number" id="f-Mg" placeholder="e.g. 8" step="0.1" min="0">
+      </div>
+      <div class="form-field">
+        <label>Ca (ppm)</label>
+        <input type="number" id="f-Ca" placeholder="e.g. 25" step="0.1" min="0">
       </div>
     </div>
     <button class="submit-btn" onclick="submitReading()">Save Reading</button>
@@ -1516,6 +1662,7 @@ function showLog(id, navEl) {
   if (id === 'maint') renderMaint();
   if (id === 'ranges') renderRangesForm();
   if (id === 'entry') initEntryForm();
+  if (id === 'calc') {} // calculators are always ready
 }
 
 // ── Chart ─────────────────────────────────
@@ -1668,7 +1815,7 @@ function submitReading() {
   if (!date) { alert('Please enter a date'); return; }
 
   const rec = { date };
-  const fields = ['NO3','PO4','KH','pH','GH','CO2','Fe','Temp'];
+  const fields = ['NO3','PO4','KH','pH','GH','CO2','Fe','Temp','TDS','Mg','Ca'];
   fields.forEach(f => {
     const v = parseFloat(document.getElementById('f-'+f).value);
     if (!isNaN(v) && v >= 0) rec[f] = v;
@@ -1882,6 +2029,9 @@ const DEFAULT_RANGES = {
   CO2: {low:29, high:41,  tooLow:5,   tooHigh:50,  unit:'ppm',  label:'CO₂'},
   Fe:  {low:0.05,high:0.2,tooLow:0,   tooHigh:0.5, unit:'ppm',  label:'Fe'},
   Temp:{low:22, high:26,  tooLow:21,  tooHigh:28,  unit:'°C',   label:'Temp'},
+  TDS: {low:120, high:250, tooLow:100, tooHigh:300, unit:'ppm', label:'TDS'},
+  Mg:  {low:6,   high:10,  tooLow:2,   tooHigh:14,  unit:'ppm', label:'Mg'},
+  Ca:  {low:20,  high:30,  tooLow:10,  tooHigh:35,  unit:'ppm', label:'Ca'},
 };
 
 function getSavedRanges() {
@@ -1895,7 +2045,7 @@ function renderRangesForm() {
   const current = getSavedRanges();
   const container = document.getElementById('ranges-form-container');
 
-  const paramOrder = ['NO3','PO4','KH','pH','GH','CO2','Fe','Temp'];
+  const paramOrder = ['NO3','PO4','KH','pH','GH','CO2','Fe','Temp','TDS','Mg','Ca'];
   container.innerHTML = paramOrder.map(key => {
     const r = current[key];
     const step = key === 'Fe' ? '0.01' : key === 'pH' || key === 'KH' || key === 'PO4' ? '0.01' : '0.5';
@@ -1937,7 +2087,7 @@ function renderRangesForm() {
 }
 
 function saveRanges() {
-  const paramOrder = ['NO3','PO4','KH','pH','GH','CO2','Fe','Temp'];
+  const paramOrder = ['NO3','PO4','KH','pH','GH','CO2','Fe','Temp','TDS','Mg','Ca'];
   const saved = {};
   paramOrder.forEach(key => {
     saved[key] = {
@@ -1970,6 +2120,75 @@ function resetRanges() {
     if (saved) Object.assign(RANGES, JSON.parse(saved));
   } catch(e) {}
 })();
+
+// ── Send calc result to Add Reading form ─
+function sendToForm(resultId, fieldId) {
+  const val = document.getElementById(resultId).textContent;
+  if (!val || val === '—') return;
+  // Switch to entry page
+  const entryBtn = document.getElementById('loginav-entry');
+  showLog('entry', entryBtn);
+  // Set value
+  const field = document.getElementById(fieldId);
+  if (field) {
+    field.value = parseFloat(val);
+    // Flash the field to show it was set
+    field.style.borderColor = 'var(--coral)';
+    field.style.background = 'rgba(212,168,67,0.08)';
+    setTimeout(() => {
+      field.style.borderColor = '';
+      field.style.background = '';
+    }, 1500);
+    field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+// ── Calculators ──────────────────────────
+function toggleCalc(id) {
+  const body = document.getElementById('calc-body-'+id);
+  const arrow = document.getElementById('calc-arrow-'+id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  arrow.classList.toggle('open', !isOpen);
+}
+
+function calcKH() {
+  const ppm = parseFloat(document.getElementById('kh-ppm').value);
+  const el = document.getElementById('kh-result');
+  if (isNaN(ppm) || ppm < 0) { el.textContent = '—'; return; }
+  el.textContent = (ppm / 17.848).toFixed(3);
+}
+
+function calcHanna() {
+  const x = parseFloat(document.getElementById('hanna-raw').value);
+  const el = document.getElementById('hanna-result');
+  if (isNaN(x) || x < 0) { el.textContent = '—'; return; }
+  const w = Math.min(1, Math.max(0, (x - 15) / 10));
+  const low = 0.78 * x - 1.3;
+  const high = 0.93 * x - 3.2;
+  const result = Math.max(0, (1 - w) * low + w * high);
+  el.textContent = result.toFixed(2);
+}
+
+// Ca and CO2 placeholders — awaiting Excel formulas
+function calcCa() {
+  const gh = parseFloat(document.getElementById('ca-gh').value);
+  const mg = parseFloat(document.getElementById('ca-mg').value);
+  const el = document.getElementById('ca-result');
+  if (isNaN(gh) || isNaN(mg) || mg === 0) { el.textContent = '—'; return; }
+  const result = ((gh * 17.848) - (4.118 * mg)) / 2.497;
+  el.textContent = result > 0 ? result.toFixed(1) : '—';
+}
+
+function calcCO2() {
+  const sample = parseFloat(document.getElementById('co2-sample').value);
+  const titrant = parseFloat(document.getElementById('co2-titrant').value);
+  const el = document.getElementById('co2-result');
+  if (isNaN(sample) || isNaN(titrant) || sample <= 0) { el.textContent = '—'; return; }
+  // Formula: titrant * 0.01 * 44 * 1000 / sample
+  const result = titrant * 0.01 * 44 * 1000 / sample;
+  el.textContent = result.toFixed(1);
+}
 
 
 </script>
